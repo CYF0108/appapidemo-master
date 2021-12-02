@@ -24,23 +24,26 @@ import java.util.Map;
 @RestController
 @RequestMapping("/excise")
 public class ExciseController {
-    @Autowired(required = false)
-    private ReaderMapper readerMapper;
-    @Autowired(required = false)
-    private AlbumMapper albumMapper;
-    @Autowired(required = false)
-    private SubalbumMapper subalbumMapper;
-    @Autowired(required = false)
-    private BorrowrecordMapper borrowrecordMapper;
+    private final ReaderMapper readerMapper;
+    private final AlbumMapper albumMapper;
+    private final SubalbumMapper subalbumMapper;
+    private final BorrowrecordMapper borrowrecordMapper;
+
+    public ExciseController(ReaderMapper readerMapper, AlbumMapper albumMapper, SubalbumMapper subalbumMapper, BorrowrecordMapper borrowrecordMapper) {
+        this.readerMapper = readerMapper;
+        this.albumMapper = albumMapper;
+        this.subalbumMapper = subalbumMapper;
+        this.borrowrecordMapper = borrowrecordMapper;
+    }
 
     @RequestMapping(value = "/login", method = RequestMethod.POST)
     public Map<String, Object> login(@RequestParam("account") String account, @RequestParam("password") String password) {
         Map<String, Object> map = new HashMap<>();
         Reader reader = readerMapper.selectWholeByAccount(account);
         if (reader != null) {
-            System.out.println("hahaha" + reader.getPassword().equals(password));
+            System.out.println(reader.getName() + "登陆中..." + reader.getPassword().equals(password));
             if (reader.getPassword().equals(password)) {
-                System.out.println("hahaha" + reader.getPassword().equals(password));
+                System.out.println(reader.getName() + "登陆成功!" + reader.getPassword().equals(password));
                 map.put("result", "yes");
                 map.put("loginUser", reader);
                 if (reader.getCondi() == 0) {
@@ -64,6 +67,7 @@ public class ExciseController {
         List<Reader> list = readerMapper.selectByAccount(account);
         PageInfo<Reader> pageInfo = new PageInfo<>(list);
         map.put("readers", list);
+        map.put("msg", "查询成功！");
         map.put("pageInfo", pageInfo);
         return map;
     }
@@ -96,9 +100,19 @@ public class ExciseController {
         if (readerMapper.selectWholeByAccount(account) != null) {
             map.put("status", "no");
         } else {
-            readerMapper.insert(new Reader(account, account, name, sex, DateTimeUtil.getDate(), condi));
+            readerMapper.insert(new Reader(account, account,name, sex, DateTimeUtil.getDate(), condi));
             map.put("status", "ok");
+            map.put("msg", "添加成功！");
         }
+        return map;
+    }
+
+    @RequestMapping(value = "/deleteReader", method = RequestMethod.POST)
+    public Map<String, Object> deleteReader(@RequestParam("account") String account) {
+        Map<String, Object> map = new HashMap<>();
+        readerMapper.deleteByAccount(account);
+        map.put("msg", "删除成功！");
+        map.put("status", "ok");
         return map;
     }
 
